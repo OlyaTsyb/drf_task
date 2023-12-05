@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  server_a:
+    build:
+      context: ./server_a
+    ports:
+      - "8003:8003"
+    command: >
+        bash -c "python manage.py makemigrations --merge --noinput &&
+                 python manage.py migrate &&
+                 python manage.py runserver 0.0.0.0:8003"
+    depends_on:
+      - rabbitmq
+      - redis
+
+  server_b:
+    build:
+      context: ./server_b
+
+    command: >
+      bash -c "python worker.py"
+
+
+  rabbitmq:
+    image: "rabbitmq:management"
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6378:6379"
+
+
